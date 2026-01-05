@@ -1,3 +1,4 @@
+```
 real-time-log-streaming/
 │
 ├── README.md
@@ -47,3 +48,7 @@ real-time-log-streaming/
 │   └── submit_streams.sh         # spark-submit commands
 │
 └── run_pipeline.py               # optional orchestration entry
+```
+
+
+

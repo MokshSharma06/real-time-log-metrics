@@ -50,5 +50,37 @@ real-time-log-streaming/
 └── run_pipeline.py               # optional orchestration entry
 ```
 
+```
+JSON Log Producer
+        ↓
+     Apache Kafka
+        ↓
+Spark Structured Streaming
+        ↓
+  Bronze Delta (Raw)
+        ↓
+  Silver Delta (Clean & Trusted)
+        ↓
+   Gold Delta (Aggregated Metrics)
+```
 
+
+# ⚙️ Streaming Features Implemented
+
+This project intentionally focuses on core, real-world streaming problems:
+
+#1. Event-Time Processing
+Metrics are computed using the event’s timestamp, not processing time.
+
+#2.Late-Arriving Data Handling
+Watermarks allow late events to update windows within a defined tolerance.
+
+#3. Windowed Aggregations
+Metrics are computed over fixed time windows (e.g., 1 minute).
+
+#4. Deduplication
+Duplicate events (due to retries or at-least-once delivery) are removed using event_id.
+
+#5. Fault Tolerance & Exactly-Once Semantics
+Checkpointing + Delta Lake ensure safe restarts without data corruption.
 

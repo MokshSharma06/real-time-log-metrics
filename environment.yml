@@ -1,0 +1,13 @@
+name: real-time-log-metrics
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - openjdk=17
+  - pip
+  - pip:
+      - delta-spark==3.2.0
+      - pyspark==3.5
+      - pytest
+      - yaml

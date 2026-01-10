@@ -8,7 +8,7 @@ import yaml
 from src.utils import load_config
 
 def main():
-    # 1️⃣ Load config
+    # Load config
     config = load_config()
     kafka_conf = config["kafka"]
     base_paths = config["paths"]
@@ -28,7 +28,7 @@ def main():
         .load()
     )
 
-    # 4️⃣ Bronze transformation (RAW + METADATA ONLY)
+    # Bronze transformation (RAW + METADATA ONLY)
     bronze_df = (
         kafka_df.select(
             col("value").cast("string").alias("raw_value"),
@@ -41,7 +41,7 @@ def main():
         .withColumn("ingestion_hour", hour(col("ingestion_time")))
     )
 
-    # 5️⃣ Write Bronze Delta
+    # Write Bronze Delta
     (
         bronze_df.writeStream
         .format("delta")

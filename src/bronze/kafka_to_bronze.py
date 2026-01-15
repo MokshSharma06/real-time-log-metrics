@@ -19,6 +19,8 @@ def main():
 
     spark = get_spark_session()
 
+    
+
     kafka_df = (
         spark.readStream
         .format("kafka")
@@ -54,8 +56,7 @@ def main():
     
     # spark.read.format("delta") \
     # .load("data/bronze/logs") \
-    # .show(100000,truncate=False)
-    
+    # .show(100000,truncate=100)
 
 
 if __name__ == "__main__":

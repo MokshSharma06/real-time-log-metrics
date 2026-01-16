@@ -7,7 +7,7 @@ dependencies:
   - openjdk=17
   - pip
   - pip:
-      - delta-spark==3.2.0
+      - delta-spark==3.1.0
       - pyspark==3.5
       - pytest
       - yaml

@@ -1,6 +1,7 @@
 from pyspark.sql.functions import from_json, col, to_timestamp,expr
 from src.utils import get_spark_session
 from src.schema import LOG_SCHEMA
+from delta.tables import DeltaTable
 
 spark = get_spark_session()
 
@@ -33,20 +34,31 @@ processed_stream = (
     silver_df
     .withColumn("is_valid", is_valid_expr)
     .withColumn("is_late", is_late_expr)
-    .withWatermark("event_time", "24 hours") 
+    .withWatermark("event_time", "2 hours")
     .dropDuplicates(["event_id", "event_time"])
 )
+# paths for the sinks
+clean_path = "data/silver/clean"
+bad_path = "data/silver/bad"
+late_path = "data/silver/late"
+
 def multi_sink_writer(batch_df, batch_id):
     batch_df.persist()
     internal_flags = ["is_valid", "is_late"]
 
-    # CLEAN DATA
-    (batch_df
-     .filter((col("is_valid") == True) & (col("is_late") == False))
-     .drop(*internal_flags)
-     .write.format("delta")
-     .mode("append")
-     .save("data/silver/clean"))
+    clean_data = batch_df.filter((col("is_valid") == True) & (col("is_late") == False)).drop(*internal_flags)
+    
+
+    if not clean_data.isEmpty():
+        if DeltaTable.isDeltaTable(spark, clean_path):
+            target_table = DeltaTable.forPath(spark, clean_path)
+            (target_table.alias("t")
+             .merge(clean_data.alias("s"), "t.event_id = s.event_id")
+             .whenNotMatchedInsertAll()
+             .execute())
+        else:
+            clean_data.write.format("delta").mode("append").save(clean_path)
+
 
     # BAD DATA
     (batch_df
@@ -67,24 +79,13 @@ def multi_sink_writer(batch_df, batch_id):
     batch_df.unpersist()
 
 
-query = processed_stream.writeStream \
-    .foreachBatch(multi_sink_writer) \
-    .trigger(availableNow=True) \
-    .option("checkpointLocation", "checkpoints/silver/logs") \
-    .start()
-
-query.awaitTermination()
-
-
-# silver_df =spark.read \
-#         .format('delta') \
-#         .load('data/silver/late')
+silver_df =spark.read \
+        .format('delta') \
+        .load('data/silver/clean')
 
 # from pyspark.sql import functions as F
+# from datetime import date
 
-# target_id = "7b7511bf-9deb-451b-be8f-51b93d153e74"
-# filtered_df = silver_df.filter(F.col("event_id") == target_id)
-
+# target_id = "421bb00f-3e3f-4ee9-870d-234c0a160fed"
+# filtered_df = silver_df.filter(F.to_date(F.col("ingestion_time")) == F.current_date())
 # filtered_df.show()
-
-# silver_df.show(10000)

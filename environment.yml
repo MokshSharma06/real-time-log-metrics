@@ -11,3 +11,4 @@ dependencies:
       - pyspark==3.5
       - pytest
       - yaml
+      -dotenv

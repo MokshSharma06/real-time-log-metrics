@@ -5,19 +5,17 @@ from src.schema import LOG_SCHEMA
 from src.transformations import classify_data
 import yaml
 from src.utils import load_config
-
-
-
-
+from src.utils import cfg
 
 
 def start_silver_stream(spark,config):
-    kafka_conf = config["kafka"]
-    base_paths = config["paths"]
+    bronze_path=cfg.paths['bronze']
+    silver_path=cfg.paths['silver']
+    clean_path=cfg.paths['silver_clean']
+    bad_path=cfg.paths['silver_bad']
+    late_path=cfg.paths['silver_late']
 
-    bronze_path = f"{base_paths['bronze']}/logs"
-    checkpoint_path = f"{base_paths['checkpoints']['bronze']}/logs"
-    silver_path = f"{base_paths['silver']}/logs"
+
 
     # -------------------- READ BRONZE --------------------
     bronze_df = (
@@ -61,11 +59,6 @@ def start_silver_stream(spark,config):
 
     # -------------------- PHASE 4 CLASSIFICATION ----------
     classified_stream = classify_data(processed_stream)
-
-    # -------------------- SINK PATHS ----------------------
-    clean_path = "data/silver/clean"
-    bad_path   = "data/silver/bad"
-    late_path  = "data/silver/late"
 
     # -------------------- FOREACH BATCH WRITER ------------
     def multi_sink_writer(batch_df, batch_id):
@@ -129,7 +122,7 @@ def start_silver_stream(spark,config):
         .writeStream
         .queryName("silver_layer")
         .foreachBatch(multi_sink_writer)
-        .option("checkpointLocation", "checkpoints/silver")
+        .option("checkpointLocation", cfg.checkpoints['silver'])
         .outputMode("update")
         .start()
     )

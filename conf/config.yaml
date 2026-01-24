@@ -2,10 +2,25 @@
 # Application Configuration
 # ================================
 
-app:
-  name: real-time-log-streaming
-  environment: local        # local | azure
-  timezone: UTC
+environment: "local"
+
+azure:
+  account_name: "realtimelog"
+  data_container: "data"
+  checkpoint_container: "checkpoints"
+  sub_prefix: "logs" 
+# storage for local env
+local:
+  data_base: "./data"
+  checkpoint_base: "./checkpoints"
+  sub_prefix: ""
+# storage paths medallion for cloud
+paths:
+  bronze: "bronze"
+  silver_clean: "silver/clean"
+  silver_late: "silver/late"
+  silver_bad: "silver/bad"
+  gold: "gold"
 
 
 # ================================
@@ -13,11 +28,13 @@ app:
 # ================================
 
 kafka:
-  bootstrap_servers: localhost:9092
-  topic: app-logs
-  starting_offsets: latest   # earliest | latest
-  fail_on_data_loss: false   # important for streaming stability
-
+  bootstrap_servers: "real-time-log.servicebus.windows.net:9093"
+  topic: "event-logs"
+  # Authentication settings
+  security_protocol: "SASL_SSL"
+  sasl_mechanism: "PLAIN"
+  username: "$ConnectionString"
+  starting_offsets: latest
 
 # ================================
 # Streaming Configuration
@@ -27,11 +44,11 @@ streaming:
   trigger_interval: "10 seconds"
 
   event_time_column: event_time
-  watermark_duration: "2 minutes"
+  watermark_duration: "10 minutes"
 
   window:
     type: tumbling            # tumbling | sliding
-    duration: "1 minute"
+    duration: "5 minute"
     slide: null               # used only if sliding
 
 
@@ -44,19 +61,3 @@ deduplication:
   key_columns:
     - event_id
   retention: "5 minutes"
-
-
-# ================================
-# Medallion Storage Paths
-# ================================
-
-paths:
-  bronze: data/bronze
-  silver: data/silver
-  gold: data/gold
-
-  checkpoints:
-    bronze: checkpoints/bronze
-    silver: checkpoints/silver
-    gold: checkpoints/gold
-

@@ -4,16 +4,16 @@ from pyspark.sql import functions as F
 from src.schema import LOG_SCHEMA
 from src.transformations import classify_data
 import yaml
-from src.utils import load_config
+from src.utils import cfg
 from src.utils import cfg
 
 
 def start_silver_stream(spark,config):
     bronze_path=cfg.paths['bronze']
     silver_path=cfg.paths['silver']
-    clean_path=cfg.paths['silver_clean']
-    bad_path=cfg.paths['silver_bad']
-    late_path=cfg.paths['silver_late']
+    clean_path=cfg.paths['silver']['clean']
+    bad_path=cfg.paths['silver']['bad']
+    late_path=cfg.paths['silver']['late']
 
 
 
@@ -123,8 +123,15 @@ def start_silver_stream(spark,config):
         .queryName("silver_layer")
         .foreachBatch(multi_sink_writer)
         .option("checkpointLocation", cfg.checkpoints['silver'])
+        .partitionBy("ingestion_date", "ingestion_hour")
         .outputMode("update")
         .start()
     )
 
     return query
+
+
+
+if __name__ == "__main__":
+    query = start_silver_stream(spark,cfg)
+    query.awaitTermination()

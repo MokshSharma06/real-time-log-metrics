@@ -2,25 +2,40 @@
 # Application Configuration
 # ================================
 
-environment: "local"
+environment: azure   # local | azure
 
-azure:
-  account_name: "realtimelog"
-  data_container: "data"
-  checkpoint_container: "checkpoints"
-  sub_prefix: "logs" 
-# storage for local env
-local:
-  data_base: "./data"
-  checkpoint_base: "./checkpoints"
-  sub_prefix: ""
-# storage paths medallion for cloud
 paths:
-  bronze: "bronze"
-  silver_clean: "silver/clean"
-  silver_late: "silver/late"
-  silver_bad: "silver/bad"
-  gold: "gold"
+  azure:
+    bronze: "abfss://data@realtimelog.dfs.core.windows.net/logs/bronze"
+    silver:
+      clean: "abfss://data@realtimelog.dfs.core.windows.net/logs/silver/clean"
+      late:  "abfss://data@realtimelog.dfs.core.windows.net/logs/silver/late"
+      bad:   "abfss://data@realtimelog.dfs.core.windows.net/logs/silver/bad"
+    gold: "abfss://data@realtimelog.dfs.core.windows.net/logs/gold"
+
+  local:
+    bronze: "./data/logs/bronze"
+    silver:
+      clean: "./data/logs/silver/clean"
+      late:  "./data/logs/silver/late"
+      bad:   "./data/logs/silver/bad"
+    gold: "./data/logs/gold"
+
+
+checkpoints:
+  azure:
+    bronze: "abfss://checkpoints@realtimelog.dfs.core.windows.net/bronze"
+    silver: "abfss://checkpoints@realtimelog.dfs.core.windows.net/silver"
+    gold: "abfss://checkpoints@realtimelog.dfs.core.windows.net/gold"
+
+  local:
+    bronze: "./checkpoints/bronze"
+    silver:
+      clean: "./checkpoints/silver/clean"
+      late:  "./checkpoints/silver/late"
+      bad:   "./checkpoints/silver/bad"
+    gold: "./checkpoints/gold"
+
 
 
 # ================================
@@ -28,13 +43,21 @@ paths:
 # ================================
 
 kafka:
-  bootstrap_servers: "real-time-log.servicebus.windows.net:9093"
-  topic: "event-logs"
-  # Authentication settings
-  security_protocol: "SASL_SSL"
-  sasl_mechanism: "PLAIN"
-  username: "$ConnectionString"
-  starting_offsets: latest
+  azure:
+    bootstrap_servers: "real-time-log.servicebus.windows.net:9093"
+    topic: "app-logs"
+
+    security_protocol: "SASL_SSL"
+    sasl_mechanism: "PLAIN"
+    username: "$ConnectionString"
+    starting_offsets: earliest
+
+  local:
+    bootstrap_servers: "localhost:9092"
+    topic: "app-logs"
+
+    security_protocol: "PLAINTEXT"
+    starting_offsets: latest
 
 # ================================
 # Streaming Configuration

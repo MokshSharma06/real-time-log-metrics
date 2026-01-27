@@ -17,19 +17,26 @@ TOPIC = cfg.kafka["topic"]
 SERVICES = ["payment", "order", "auth"]
 STATUS_CODES = [200, 200, 200, 500, 404]
 
-
-
-def create_kafka_producer():
+def create_kafka_producer(cfg):
     load_dotenv()
-    return KafkaProducer(
-        bootstrap_servers=cfg.kafka["bootstrap_servers"],
-        security_protocol=cfg.kafka.get("security_protocol", "SASL_SSL"),
-        sasl_mechanism=cfg.kafka.get("sasl_mechanism", "PLAIN"),
-        sasl_plain_username=cfg.kafka.get("username", "$ConnectionString"),
-        sasl_plain_password=os.getenv("CONNECTION_STRING"),
-        value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-        acks="all"
-    )
+
+    kafka_conf = {
+        "bootstrap_servers": cfg.kafka["bootstrap_servers"],
+        "value_serializer": lambda v: json.dumps(v).encode("utf-8"),
+        "acks": "all"
+    }
+
+    # Apply security ONLY if present (Azure)
+    if "security_protocol" in cfg.kafka:
+        kafka_conf.update({
+            "security_protocol": cfg.kafka["security_protocol"],
+            "sasl_mechanism": cfg.kafka["sasl_mechanism"],
+            "sasl_plain_username": cfg.kafka["username"],
+            "sasl_plain_password": os.getenv("CONNECTION_STRING")
+        })
+
+    return KafkaProducer(**kafka_conf)
+
 
 
 def generate_log_event(previous_event=None):

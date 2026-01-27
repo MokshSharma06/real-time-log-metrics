@@ -1,29 +1,32 @@
-# src/bronze/kafka_to_bronze.py
-
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp, to_date, hour
-from src.schema import LOG_SCHEMA
-from src.utils import get_spark_session
-import yaml
+from databricks.sdk.runtime import dbutils
 from src.utils import cfg
 
-from pyspark.sql.functions import col, current_timestamp, to_date, hour
-
-
 def start_bronze_stream(spark):
-    bronze_path=cfg.paths['bronze']
+    eh_conn_string = dbutils.secrets.get(
+        scope="realtime-secrets",
+        key="eh-connection-string"
+    )
 
-    # -------------------- READ FROM KAFKA --------------------
+    jaas = f'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$ConnectionString\" password=\"{eh_conn_string}\";'
+
     kafka_df = (
         spark.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", cfg.kafka["bootstrap_servers"])
         .option("subscribe", cfg.kafka["topic"])
-        .option("startingOffsets",cfg.kafka['starting_offsets'])
+        .option("startingOffsets", "latest") 
+        .option("kafka.security.protocol", "SASL_SSL")
+        .option("kafka.sasl.mechanism", "PLAIN")
+        .option("kafka.sasl.jaas.config", jaas)
+        .option("kafka.request.timeout.ms", "60000")
+        .option("kafka.session.timeout.ms", "60000")
+        .option("kafka.group.id", "bronze-stream")
         .load()
     )
 
     # -------------------- BRONZE TRANSFORMATION --------------------
+    # (Kept exactly as you had it - it's a solid raw-ingestion pattern)
     bronze_df = (
         kafka_df.select(
             col("value").cast("string").alias("raw_value"),
@@ -40,21 +43,16 @@ def start_bronze_stream(spark):
     query = (
         bronze_df.writeStream
         .format("delta")
-        .queryName("Ingestion Kafka to Bronze")
+        .queryName("Ingestion_EventHub_to_Bronze")
         .outputMode("append")
         .option("checkpointLocation", cfg.checkpoints['bronze'])
         .partitionBy("ingestion_date", "ingestion_hour")
-        .start(bronze_path)
+        .start(cfg.paths['bronze'])
     )
 
     return query
 
 
-# if __name__ == "__main__":
-#     from pyspark.sql import SparkSession
-    
-#     spark = SparkSession.builder.appName("BronzeLayerTest").getOrCreate()
-    
-#     print(f"Starting Bronze Stream in {cfg.env} mode...")
-#     query = start_bronze_stream(spark)
-#     query.awaitTermination()
+if __name__ == "__main__":
+    query = start_bronze_stream(spark)
+    query.awaitTermination()

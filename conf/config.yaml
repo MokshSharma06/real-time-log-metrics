@@ -50,7 +50,7 @@ kafka:
     security_protocol: "SASL_SSL"
     sasl_mechanism: "PLAIN"
     username: "$ConnectionString"
-    starting_offsets: earliest
+    starting_offsets: latest
 
   local:
     bootstrap_servers: "localhost:9092"
@@ -64,10 +64,10 @@ kafka:
 # ================================
 
 streaming:
-  trigger_interval: "10 seconds"
+  trigger_interval: "1 minutes"
 
   event_time_column: event_time
-  watermark_duration: "10 minutes"
+  watermark_duration: "1 hours"
 
   window:
     type: tumbling            # tumbling | sliding

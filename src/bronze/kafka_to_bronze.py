@@ -15,18 +15,18 @@ def start_bronze_stream(spark):
         .format("kafka")
         .option("kafka.bootstrap.servers", cfg.kafka["bootstrap_servers"])
         .option("subscribe", cfg.kafka["topic"])
-        .option("startingOffsets", "latest") 
+        .option("startingOffsets", cfg.kafka['starting_offsets']) 
         .option("kafka.security.protocol", "SASL_SSL")
         .option("kafka.sasl.mechanism", "PLAIN")
         .option("kafka.sasl.jaas.config", jaas)
         .option("kafka.request.timeout.ms", "60000")
         .option("kafka.session.timeout.ms", "60000")
         .option("kafka.group.id", "bronze-stream")
+        .option("failOnDataLoss", "false")
         .load()
     )
 
     # -------------------- BRONZE TRANSFORMATION --------------------
-    # (Kept exactly as you had it - it's a solid raw-ingestion pattern)
     bronze_df = (
         kafka_df.select(
             col("value").cast("string").alias("raw_value"),
@@ -42,6 +42,7 @@ def start_bronze_stream(spark):
     # -------------------- WRITE BRONZE DELTA --------------------
     query = (
         bronze_df.writeStream
+        .trigger(processingTime=cfg.streaming['trigger_interval'])
         .format("delta")
         .queryName("Ingestion_EventHub_to_Bronze")
         .outputMode("append")
@@ -49,10 +50,22 @@ def start_bronze_stream(spark):
         .partitionBy("ingestion_date", "ingestion_hour")
         .start(cfg.paths['bronze'])
     )
+    # def log_batch_metrics(batch_df, batch_id):
+    #     print(f"\n========== BATCH {batch_id} ==========")
+    #     print(f"Records in this batch: {batch_df.count()}")
+    #     print("=====================================\n")
+
+    # query = (
+    #     bronze_df.writeStream
+    #     .foreachBatch(log_batch_metrics)
+    #     .trigger(processingTime=cfg.streaming['trigger_interval'])
+    #     .start(checkpointLocation="abfss://checkpoints@realtimelog.dfs.core.windows.net/bronze")
+    # )
 
     return query
 
 
 if __name__ == "__main__":
+    spark = get_spark("Kafka_to_Bronze")
     query = start_bronze_stream(spark)
     query.awaitTermination()

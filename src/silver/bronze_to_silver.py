@@ -37,7 +37,9 @@ def start_silver_stream(spark,config):
         to_timestamp(col("data.event_time")).alias("event_time"),
         col("ingestion_time"),
         col("kafka_partition"),
-        col("kafka_offset")
+        col("kafka_offset"),
+        col("ingestion_date"),
+        col("ingestion_hour")
     )
 
     # -------------------- VALIDATION FLAGS ----------------
@@ -53,7 +55,7 @@ def start_silver_stream(spark,config):
         silver_df
         .withColumn("schema_valid", is_valid_expr)
         .withColumn("is_late", is_late_expr)
-        .withWatermark("event_time", "1 hours")
+        .withWatermark("event_time", cfg.streaming['watermark_duration'])
         .dropDuplicates(["event_id", "event_time"])
     )
 
@@ -84,6 +86,7 @@ def start_silver_stream(spark,config):
             else:
                 clean_data.write \
                     .format("delta") \
+                    .partitionBy("ingestion_date", "ingestion_hour") \
                     .mode("append") \
                     .option("mergeSchema", "true") \
                     .save(clean_path)
@@ -91,12 +94,14 @@ def start_silver_stream(spark,config):
         # ---------- BAD ----------
         if not bad_data.isEmpty():
             if DeltaTable.isDeltaTable(spark,bad_path):
-                target_bad=DeltaTable.forPath(spark, bad_path)
+                if DeltaTable.isDeltaTable(spark, bad_path):    target_bad=DeltaTable.forPath(spark, bad_path)
+
                 #Remove any records from a previous failed attempt of this same batch
                 target_bad.delete(F.col("_batch_id")==batch_id)
     
             bad_data.write \
                 .format("delta") \
+                .partitionBy("ingestion_date", "ingestion_hour") \
                 .mode("append") \
                 .option("mergeSchema", "true") \
                 .save(bad_path)
@@ -110,6 +115,7 @@ def start_silver_stream(spark,config):
 
             late_data.write \
                 .format("delta") \
+                .partitionBy("ingestion_date", "ingestion_hour") \
                 .mode("append") \
                 .option("mergeSchema", "true") \
                 .save(late_path)
@@ -123,7 +129,6 @@ def start_silver_stream(spark,config):
         .queryName("silver_layer")
         .foreachBatch(multi_sink_writer)
         .option("checkpointLocation", cfg.checkpoints['silver'])
-        .partitionBy("ingestion_date", "ingestion_hour")
         .outputMode("update")
         .start()
     )
@@ -133,5 +138,6 @@ def start_silver_stream(spark,config):
 
 
 if __name__ == "__main__":
+    spark = get_spark("bronze_to_silver")
     query = start_silver_stream(spark,cfg)
     query.awaitTermination()

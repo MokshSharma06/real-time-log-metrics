@@ -8,10 +8,15 @@ from pyspark.sql.functions import (
     count,
     sum as sum_
 )
-spark = get_spark_session()
-clean_path = "data/silver/clean"
-bad_path = "data/silver/bad"
-late_path = "data/silver/late"
+from src.utils import cfg
+bronze_path=cfg.paths['bronze']
+silver_path=cfg.paths['silver']
+clean_path=cfg.paths['silver']['clean']
+bad_path=cfg.paths['silver']['bad']
+late_path=cfg.paths['silver']['late']
+gold_path =cfg.paths['gold']
+
+
 
 silver_clean_df = spark.readStream \
     .format("delta") \
@@ -56,7 +61,6 @@ def compute_service_error_metrics(
 
 
 def start_gold_stream(spark):
-    clean_path = "data/silver/clean"
 
     silver_clean_df = (
         spark.readStream
@@ -68,13 +72,16 @@ def start_gold_stream(spark):
 
     query = (
         gold_df.writeStream
-        .format("console")
+        .format("delta")
         .queryName("Gold_Stream")
-        .outputMode("update")
-        .option("truncate", "false")
-        .option("checkpointLocation", "checkpoints/gold/console")
-        .start()
+        .outputMode("append")
+        .option("checkpointLocation", cfg.checkpoints['gold'])
+        .start(gold_path)
     )
 
     return query
-    
+
+if __name__ == "__main__":
+    spark = get_spark("Gold_stream")
+    query = start_gold_stream(spark)
+    query.awaitTermination()

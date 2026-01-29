@@ -1,13 +1,16 @@
 # Real-Time Log metrics Pipeline on Azure (End-to-End Streaming Data Engineering Project)
 This project implements a production-style real-time streaming data pipeline that ingests application logs, processes them with distributed computing, and delivers actionable insights through analytics dashboards.
-The pipeline is designed to handle:
 
+# The pipeline is designed to handle:
+```
 ✅ High-throughput streaming data
 ✅ Late-arriving events
 ✅ Bad data quarantine
 ✅ Scalable distributed processing
 ✅ Medallion architecture (Bronze → Silver → Gold)
 ✅ Near real-time analytics
+```
+<iframe src="https://equable-need-9b3.notion.site/ebd//2e03d4bcadaa80e8a8a3c65c11b5ff8b" width="100%" height="600" frameborder="0" allowfullscreen />
 ```
 real-time-log-streaming/
 │

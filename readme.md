@@ -15,7 +15,7 @@ This project implements a production-style real-time streaming data pipeline tha
 For architecture decisions, design thinking, and deep technical explanations,  
 refer to the full project documentation:
 
-👉 [View Full Documentation](https://equable-need-9b3.notion.site/Daily-Progress-of-real-time-log-metrics-and-learnings-2e03d4bcadaa80e8a8a3c65c11b5ff8b?source=copy_link)
+👉[![Docs](https://img.shields.io/badge/Documentation-Notion-black)](https://equable-need-9b3.notion.site/Daily-Progress-of-real-time-log-metrics-and-learnings-2e03d4bcadaa80e8a8a3c65c11b5ff8b?source=copy_link)
 
 ```
 real-time-log-streaming/

@@ -1,3 +1,13 @@
+# Real-Time Log metrics Pipeline on Azure (End-to-End Streaming Data Engineering Project)
+This project implements a production-style real-time streaming data pipeline that ingests application logs, processes them with distributed computing, and delivers actionable insights through analytics dashboards.
+The pipeline is designed to handle:
+
+✅ High-throughput streaming data
+✅ Late-arriving events
+✅ Bad data quarantine
+✅ Scalable distributed processing
+✅ Medallion architecture (Bronze → Silver → Gold)
+✅ Near real-time analytics
 ```
 real-time-log-streaming/
 │
@@ -9,10 +19,10 @@ real-time-log-streaming/
 │   └── spark.conf                # Spark + Delta configs
 │
 ├── kafka/
-│   ├── docker-compose.yml        # Kafka + Zookeeper
-│   ├── create_topics.sh
+│   
+│   
 │   └── producer/
-│       └── log_producer.py       # JSON log generator → Kafka
+│       └── log_producer.py       # JSON log generator → Kafka/EventHubs
 │
 ├── src/
 │   ├── bronze/
@@ -51,9 +61,9 @@ real-time-log-streaming/
 ```
 
 ```
-JSON Log Producer
+JSON Log Producer 
         ↓
-     Apache Kafka
+     Apache Kafka / Event Hubs
         ↓
 Spark Structured Streaming
         ↓

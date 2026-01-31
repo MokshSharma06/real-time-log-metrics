@@ -13,6 +13,19 @@ How do we reliably ingest, clean, aggregate, and visualize logs in near real tim
 • Error detection and Operational dashboards
 ```
 
+## 💡 Solution (This Pipeline)
+- **Ingestion**: Kafka / Event Hubs for distributed log ingestion  
+- **Processing**: Spark Structured Streaming on Azure Databricks  
+- **Storage**: Delta Lake on ADLS Gen2 for reliable, replayable storage  
+- **Architecture**: Bronze–Silver–Gold for clear separation of concerns  
+
+## 📘 Detailed Documentation
+
+For architecture decisions, design thinking, and deep technical explanations,  
+refer to the full project documentation:
+
+👉[![Docs](https://img.shields.io/badge/Documentation-Notion-black)](https://equable-need-9b3.notion.site/Daily-Progress-of-real-time-log-metrics-and-learnings-2e03d4bcadaa80e8a8a3c65c11b5ff8b?source=copy_link)
+
 ```
 The pipeline follows a Bronze–Silver–Gold layered architecture to ensure:
 
@@ -25,20 +38,6 @@ The pipeline follows a Bronze–Silver–Gold layered architecture to ensure:
 • Analytics-ready outputs for dashboards
 ```
 
-## 💡 Solution (This Pipeline)
-- **Ingestion**: Kafka / Event Hubs for distributed log ingestion  
-- **Processing**: Spark Structured Streaming on Azure Databricks  
-- **Storage**: Delta Lake on ADLS Gen2 for reliable, replayable storage  
-- **Architecture**: Bronze–Silver–Gold for clear separation of concerns  
-
-
-
-## 📘 Detailed Documentation
-
-For architecture decisions, design thinking, and deep technical explanations,  
-refer to the full project documentation:
-
-👉[![Docs](https://img.shields.io/badge/Documentation-Notion-black)](https://equable-need-9b3.notion.site/Daily-Progress-of-real-time-log-metrics-and-learnings-2e03d4bcadaa80e8a8a3c65c11b5ff8b?source=copy_link)
 
 ```
 real-time-log-streaming/

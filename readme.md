@@ -1,15 +1,16 @@
 # Real-Time Log metrics Pipeline on Azure (End-to-End Streaming Data Engineering Project)
-```
 This project implements a real-time log analytics system using Apache Kafka and Spark Structured Streaming, designed to ingest, process, and analyze application logs at scale.
+
+```
 The pipeline follows a Bronze–Silver–Gold layered architecture to ensure:
 
-Data reliability
+• Data reliability
 
-Fault tolerance
+• Fault tolerance
 
-Late data handling , Duplicate Data handling
+• Late data handling , Duplicate Data handling
 
-Analytics-ready outputs for dashboards
+• Analytics-ready outputs for dashboards
 ```
 # Problem Statement (system generates tones of logs)
 How do we reliably ingest, clean, aggregate, and visualize logs in near real time while handling late and faulty data?
@@ -23,19 +24,13 @@ Real-time monitoring
 Error detection and Operational dashboards
 ```
 # Solution ( this pipeline)
-Kafka / Event HUbs used for distributed log ingestion
-Databricks : Spark Structured Streaming for real-time processing
-Storage : Delta Lake for reliable, replayable storage ADLS GEN 2
-Architecture : Bronze–Silver–Gold architecture for separation of concerns
-# The pipeline is designed to handle:
+• Kafka / Event HUbs used for distributed log ingestion
+• Databricks : Spark Structured Streaming for real-time processing
+• Storage : Delta Lake for reliable, replayable storage ADLS GEN 2
+• Architecture : Bronze–Silver–Gold architecture for separation of concerns
 ```
-✅ High-throughput streaming data
-✅ Late-arriving events
-✅ Bad data quarantine
-✅ Scalable distributed processing
-✅ Medallion architecture (Bronze → Silver → Gold)
-✅ Near real-time analytics
-```
+
+
 ## 📘 Detailed Documentation
 
 For architecture decisions, design thinking, and deep technical explanations,  
@@ -85,32 +80,58 @@ real-time-log-streaming/
 │   ├── silver/
 │   └── gold/
 │
-├── cloud/
-│   └── adls_setup.md             # ADLS auth + configs
-│
-├── scripts/
-│   ├── start_kafka.sh
-│   └── submit_streams.sh         # spark-submit commands
-│
-└── run_pipeline.py               # optional orchestration entry
+└── main.py               # orchestration entry
 ```
+# High Level Architecture
+```
+Log Producer (Python)
+        ↓
+Kafka (Multi-Partition)
+        ↓
+Spark Structured Streaming (Databricks)
+        ↓
+Bronze Delta Table (Raw Logs)
+        ↓
+Silver Delta Table (Clean & Validated)
+        ↓
+Gold Delta Table (Aggregated Metrics)
+        ↓
+Dashboard / BI Tool
 
 ```
-JSON Log Producer 
-        ↓
-     Apache Kafka / Event Hubs
-        ↓
-Spark Structured Streaming
-        ↓
-  Bronze Delta (Raw)
-        ↓
-  Silver Delta (Clean & Trusted)
-        ↓
-   Gold Delta (Aggregated Metrics)
-```
+## 🤎 Bronze Layer ( — Raw Ingestion)
+
+### Purpose:
+**Capture logs exactly as they arrive.**
+
+### Characteristics:
+- Append-only
+- Minimal transformations
+- Stores raw Kafka messages
+- Supports replay and backfills
+
+## 🜛 Silver Layer (clean and trusted data)
+###Purpose:
+**Ensure Data quality and correctness**
+
+### Characteristics:
+- schema enforcement
+- invalid record filtering
+- late data handling using *event-time watermarking*
+- segreggating data to different sinks based on type (clean, bad , late)
+
+## 🟡 Gold layer ( Business Metrics)
+### Purpose:
+**Provides analytics ready data**
+
+### Characteristics:
+- window based aggregations (5 mins)
+- Error counts and trends
+- uses event time tumbling window
 
 
-# ⚙️ Streaming Features Implemented
+
+# ⚙️ Streaming and Engineering Concepts Implemented
 
 This project intentionally focuses on core, real-world streaming problems:
 
@@ -121,7 +142,7 @@ Metrics are computed using the event’s timestamp, not processing time.
 Watermarks allow late events to update windows within a defined tolerance.
 
 #3. Windowed Aggregations
-Metrics are computed over fixed time windows (e.g., 1 minute).
+Metrics are computed over fixed time windows (e.g., 5 minute).
 
 #4. Deduplication
 Duplicate events (due to retries or at-least-once delivery) are removed using event_id.

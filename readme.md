@@ -112,7 +112,7 @@ Dashboard / BI Tool
 - Supports replay and backfills
 
 ## 🜛 Silver Layer (clean and trusted data)
-###Purpose:
+### Purpose:
 **Ensure Data quality and correctness**
 
 ### Characteristics:
@@ -136,18 +136,18 @@ Dashboard / BI Tool
 
 This project intentionally focuses on core, real-world streaming problems:
 
-#1. Event-Time Processing
+#### 1. Event-Time Processing
 Metrics are computed using the event’s timestamp, not processing time.
 
-#2.Late-Arriving Data Handling
+#### 2.Late-Arriving Data Handling
 Watermarks allow late events to update windows within a defined tolerance.
 
-#3. Windowed Aggregations
+#### 3. Windowed Aggregations
 Metrics are computed over fixed time windows (e.g., 5 minute).
 
-#4. Deduplication
+#### 4. Deduplication
 Duplicate events (due to retries or at-least-once delivery) are removed using event_id.
 
-#5. Fault Tolerance & Exactly-Once Semantics
+#### 5. Fault Tolerance & Exactly-Once Semantics
 Checkpointing + Delta Lake ensure safe restarts without data corruption.
 

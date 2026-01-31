@@ -15,13 +15,13 @@ The pipeline follows a Bronze–Silver–Gold layered architecture to ensure:
 # Problem Statement (system generates tones of logs)
 How do we reliably ingest, clean, aggregate, and visualize logs in near real time while handling late and faulty data?
 ```
-Arrive out of order
-Can be delayed or duplicated
-Are noisy and unstructured
-Require near real-time visibility
-Traditional batch pipelines introduce high latency and are unsuitable for:
-Real-time monitoring
-Error detection and Operational dashboards
+• Arrive out of order
+• Can be delayed or duplicated
+• Are noisy and unstructured
+• Require near real-time visibility
+• Traditional batch pipelines introduce high latency and are unsuitable for:
+• Real-time monitoring
+• Error detection and Operational dashboards
 ```
 
 # Solution ( this pipeline)
@@ -136,8 +136,8 @@ Dashboard / BI Tool
 
 This project intentionally focuses on core, real-world streaming problems:
 
-#### 1. Event-Time Processing
-Metrics are computed using the event’s timestamp, not processing time.
+#### 1. Event-Time Processing and micro batching
+Metrics are computed using the event’s timestamp, not processing time in micro batches.
 
 #### 2.Late-Arriving Data Handling
 Watermarks allow late events to update windows within a defined tolerance.

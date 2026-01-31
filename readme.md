@@ -1,17 +1,6 @@
 # Real-Time Log metrics Pipeline on Azure (End-to-End Streaming Data Engineering Project)
-This project implements a real-time log analytics system using Apache Kafka and Spark Structured Streaming, designed to ingest, process, and analyze application logs at scale.
+This project demonstrates a production-style, environment-agnostic streaming data pipeline built using Apache Kafka, Spark Structured Streaming, and Delta Lake. The pipeline is designed to run consistently across different environments by externalizing all configuration and avoiding platform-specific logic. It ensures idempotent and exactly-once processing through checkpointing and transactional storage, allowing safe restarts without data duplication. Using a Bronze–Silver–Gold architecture, the system cleanly separates ingestion, data quality, and analytics layers, enabling reliable handling of late-arriving events, duplicate data, and real-time metric computation.
 
-```
-The pipeline follows a Bronze–Silver–Gold layered architecture to ensure:
-
-• Data reliability
-
-• Fault tolerance
-
-• Late data handling , Duplicate Data handling
-
-• Analytics-ready outputs for dashboards
-```
 # Problem Statement (system generates tones of logs)
 How do we reliably ingest, clean, aggregate, and visualize logs in near real time while handling late and faulty data?
 ```
@@ -24,11 +13,24 @@ How do we reliably ingest, clean, aggregate, and visualize logs in near real tim
 • Error detection and Operational dashboards
 ```
 
-# Solution ( this pipeline)
-• Kafka / Event HUbs used for distributed log ingestion
-• Databricks : Spark Structured Streaming for real-time processing
-• Storage : Delta Lake for reliable, replayable storage ADLS GEN 2
-• Architecture : Bronze–Silver–Gold architecture for separation of concerns
+```
+The pipeline follows a Bronze–Silver–Gold layered architecture to ensure:
+
+• Data reliability
+
+• Fault tolerance
+
+• Late data handling , Duplicate Data handling
+
+• Analytics-ready outputs for dashboards
+```
+
+## 💡 Solution (This Pipeline)
+- **Ingestion**: Kafka / Event Hubs for distributed log ingestion  
+- **Processing**: Spark Structured Streaming on Azure Databricks  
+- **Storage**: Delta Lake on ADLS Gen2 for reliable, replayable storage  
+- **Architecture**: Bronze–Silver–Gold for clear separation of concerns  
+
 
 
 ## 📘 Detailed Documentation

@@ -88,6 +88,14 @@ Dashboard / BI Tool
 - Error counts and trends
 - uses event time tumbling window
 
+⚙️ Tech Stack
+
+Python 3.9+
+PySpark – streaming structured query
+Delta Lake – idempotency
+YAML configs – for flexible pipeline settings (env agnostic)
+Unit Testing (pytest) – test-driven modules
+
 # ScreenShots
 ## Data / Raw 
 ![image](docs/bronze_data.png)
@@ -111,7 +119,7 @@ Dashboard / BI Tool
 ## Streams on Databricks
 ![image](docs/streams.png)
 ## Orchestration Via Run Jobs
-![image](docs/pipeline_orcherstration)
+![image](docs/pipeline_orcherstration.png)
 
 
 
@@ -132,4 +140,7 @@ Duplicate events (due to retries or at-least-once delivery) are removed using ev
 
 #### 5. Fault Tolerance & Exactly-Once Semantics
 Checkpointing + Delta Lake ensure safe restarts without data corruption.
+
+👨‍💻 Author
+Moksh Sharma – Data Engineer | BCA Graduate | Azure & PySpark Enthusiast | DP- 900 
 

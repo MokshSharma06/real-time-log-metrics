@@ -1,23 +1,25 @@
-from src.utils import get_spark_session
-from src.utils import cfg
-import conf.env_loader
+# src/main.py
+from databricks.sdk.runtime import *
 
-
+from pyspark.sql import SparkSession
+from src.utils import AppConfig
 from src.bronze.kafka_to_bronze import start_bronze_stream
 from src.silver.bronze_to_silver import start_silver_stream
 from src.gold.metrics import start_gold_stream
 
 
 def main():
-    spark = get_spark_session()
+    cfg = AppConfig()
+    spark = SparkSession.builder.getOrCreate()
+    spark.sparkContext.setLogLevel("WARN")
 
-    # -------------------- START PIPELINES --------------------
-    
+    print("Starting Bronze streaming pipeline on Databricks")
+
+
     bronze_query = start_bronze_stream(spark)
-    silver_query = start_silver_stream(spark)
+    silver_query = start_silver_stream(spark,cfg)
     gold_query   = start_gold_stream(spark)
 
-    # -------------------- WAIT --------------------
     spark.streams.awaitAnyTermination()
 
 

@@ -1,6 +1,9 @@
 # Real-Time Log metrics Pipeline on Azure (End-to-End Streaming Data Engineering Project)
 This project demonstrates a production-style, environment-agnostic streaming data pipeline built using Apache Kafka, Spark Structured Streaming, and Delta Lake. The pipeline is designed to run consistently across different environments by externalizing all configuration and avoiding platform-specific logic. It ensures idempotent and exactly-once processing through checkpointing and transactional storage, allowing safe restarts without data duplication. Using a Bronze–Silver–Gold architecture, the system cleanly separates ingestion, data quality, and analytics layers, enabling reliable handling of late-arriving events, duplicate data, and real-time metric computation.
 
+## Architecture
+![image](docs/architecture.svg)
+
 # Problem Statement (system generates tones of logs)
 How do we reliably ingest, clean, aggregate, and visualize logs in near real time while handling late and faulty data?
 ```

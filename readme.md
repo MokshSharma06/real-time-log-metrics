@@ -1,6 +1,32 @@
 # Real-Time Log metrics Pipeline on Azure (End-to-End Streaming Data Engineering Project)
-This project implements a production-style real-time streaming data pipeline that ingests application logs, processes them with distributed computing, and delivers actionable insights through analytics dashboards.
+```
+This project implements a real-time log analytics system using Apache Kafka and Spark Structured Streaming, designed to ingest, process, and analyze application logs at scale.
+The pipeline follows a Bronze–Silver–Gold layered architecture to ensure:
 
+Data reliability
+
+Fault tolerance
+
+Late data handling , Duplicate Data handling
+
+Analytics-ready outputs for dashboards
+```
+# Problem Statement (system generates tones of logs)
+How do we reliably ingest, clean, aggregate, and visualize logs in near real time while handling late and faulty data?
+```
+Arrive out of order
+Can be delayed or duplicated
+Are noisy and unstructured
+Require near real-time visibility
+Traditional batch pipelines introduce high latency and are unsuitable for:
+Real-time monitoring
+Error detection and Operational dashboards
+```
+# Solution ( this pipeline)
+Kafka / Event HUbs used for distributed log ingestion
+Databricks : Spark Structured Streaming for real-time processing
+Storage : Delta Lake for reliable, replayable storage ADLS GEN 2
+Architecture : Bronze–Silver–Gold architecture for separation of concerns
 # The pipeline is designed to handle:
 ```
 ✅ High-throughput streaming data

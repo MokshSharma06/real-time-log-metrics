@@ -23,12 +23,12 @@ Traditional batch pipelines introduce high latency and are unsuitable for:
 Real-time monitoring
 Error detection and Operational dashboards
 ```
+
 # Solution ( this pipeline)
 • Kafka / Event HUbs used for distributed log ingestion
 • Databricks : Spark Structured Streaming for real-time processing
 • Storage : Delta Lake for reliable, replayable storage ADLS GEN 2
 • Architecture : Bronze–Silver–Gold architecture for separation of concerns
-```
 
 
 ## 📘 Detailed Documentation
@@ -82,6 +82,7 @@ real-time-log-streaming/
 │
 └── main.py               # orchestration entry
 ```
+
 # High Level Architecture
 ```
 Log Producer (Python)

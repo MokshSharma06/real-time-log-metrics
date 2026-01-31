@@ -88,11 +88,35 @@ Dashboard / BI Tool
 - Error counts and trends
 - uses event time tumbling window
 
+# ScreenShots
+## Data / Raw 
+![image](docs/bronze_data.png)
+
+## Data/ Clean
+![image](docs/clean_data.png)
+
+## Data/ Bad(corruput)
+![image](docs/bad_data.png)
+
+## Data/ late (watermark passed)
+![image](docs/late_data.png)
+
+## Data / Gold (curated aggregated metrics)
+![image](docs/gold_data.png)
+
+##  Realtime Dashboard images on DataBricks
+![image](docs/dashboard_1.png)
+![image](docs/dashboard_2.png)
+
+## Streams on Databricks
+![image](docs/streams.png)
+## Orchestration Via Run Jobs
+![image](docs/pipeline_orcherstration)
+
+
 
 
 # ⚙️ Streaming and Engineering Concepts Implemented
-
-This project intentionally focuses on core, real-world streaming problems:
 
 #### 1. Event-Time Processing and micro batching
 Metrics are computed using the event’s timestamp, not processing time in micro batches.

@@ -4,18 +4,15 @@ from pyspark.sql import functions as F
 from src.schema import LOG_SCHEMA
 from src.transformations import classify_data
 import yaml
-from src.utils import cfg
-from src.utils import cfg
+from src.utils import cfg, get_spark_session
 
 
-def start_silver_stream(spark,config):
-    bronze_path=cfg.paths['bronze']
-    silver_path=cfg.paths['silver']
-    clean_path=cfg.paths['silver']['clean']
-    bad_path=cfg.paths['silver']['bad']
-    late_path=cfg.paths['silver']['late']
-
-
+def start_silver_stream(spark, config):
+    bronze_path = cfg.paths['bronze']
+    silver_path = cfg.paths['silver']
+    clean_path = cfg.paths['silver']['clean']
+    bad_path = cfg.paths['silver']['bad']
+    late_path = cfg.paths['silver']['late']
 
     # -------------------- READ BRONZE --------------------
     bronze_df = (
@@ -64,61 +61,62 @@ def start_silver_stream(spark,config):
 
     # -------------------- FOREACH BATCH WRITER ------------
     def multi_sink_writer(batch_df, batch_id):
-        batch_df=batch_df.withColumn("_batch_id",F.lit(batch_id))
+        batch_df = batch_df.withColumn("_batch_id", F.lit(batch_id))
         batch_df.persist()
 
         internal_flags = ["schema_valid", "is_late"]
 
         clean_data = batch_df.filter(col("record_status") == "CLEAN").drop(*internal_flags)
-        bad_data   = batch_df.filter(col("record_status") == "BAD").drop(*internal_flags)
-        late_data  = batch_df.filter(col("record_status") == "LATE").drop(*internal_flags)
+        bad_data = batch_df.filter(col("record_status") == "BAD").drop(*internal_flags)
+        late_data = batch_df.filter(col("record_status") == "LATE").drop(*internal_flags)
 
         # ---------- CLEAN (IDEMPOTENT MERGE) ----------
-        if not clean_data.isEmpty():
-            if DeltaTable.isDeltaTable(spark, clean_path):
+        if DeltaTable.isDeltaTable(spark, clean_path):
                 target = DeltaTable.forPath(spark, clean_path)
                 (
                     target.alias("t")
                     .merge(clean_data.alias("s"), "t.event_id = s.event_id")
                     .whenNotMatchedInsertAll()
+                    .whenMatchedUpdateAll()
                     .execute()
                 )
-            else:
+        else:
                 clean_data.write \
                     .format("delta") \
                     .partitionBy("ingestion_date", "ingestion_hour") \
-                    .mode("append") \
+                    .mode("overwrite") \
                     .option("mergeSchema", "true") \
                     .save(clean_path)
 
         # ---------- BAD ----------
-        if not bad_data.isEmpty():
-            if DeltaTable.isDeltaTable(spark,bad_path):
-                if DeltaTable.isDeltaTable(spark, bad_path):    target_bad=DeltaTable.forPath(spark, bad_path)
+        if DeltaTable.isDeltaTable(spark, bad_path):
+            target_bad = DeltaTable.forPath(spark, bad_path)
+            target_bad.delete(F.col("_batch_id") == batch_id)
 
-                #Remove any records from a previous failed attempt of this same batch
-                target_bad.delete(F.col("_batch_id")==batch_id)
-    
-            bad_data.write \
-                .format("delta") \
-                .partitionBy("ingestion_date", "ingestion_hour") \
-                .mode("append") \
-                .option("mergeSchema", "true") \
-                .save(bad_path)
+        bad_data.write \
+            .format("delta") \
+            .partitionBy("ingestion_date", "ingestion_hour") \
+            .mode("append") \
+            .save(bad_path)
 
         # ---------- LATE ----------
-        if not late_data.isEmpty():
-            if DeltaTable.isDeltaTable(spark,late_path):
-                target_late = DeltaTable.forPath(spark, late_path)
-                target_late.delete(F.col("_batch_id") == batch_id)
-
-
-            late_data.write \
-                .format("delta") \
-                .partitionBy("ingestion_date", "ingestion_hour") \
-                .mode("append") \
-                .option("mergeSchema", "true") \
+        if not DeltaTable.isDeltaTable(spark, late_path):
+            (
+                late_data.write
+                .format("delta")
+                .mode("overwrite")
+                .partitionBy("ingestion_date", "ingestion_hour")
                 .save(late_path)
+            )
+        else:
+            target_late = DeltaTable.forPath(spark, late_path)
+            (
+                target_late.alias("t")
+                .merge(late_data.alias("s"), "t.event_id = s.event_id")
+                .whenMatchedUpdateAll()
+                .whenNotMatchedInsertAll()
+                .execute()
+            )
 
         batch_df.unpersist()
 
@@ -126,6 +124,7 @@ def start_silver_stream(spark,config):
     query = (
         classified_stream
         .writeStream
+        # .trigger(availableNow=True)
         .queryName("silver_layer")
         .foreachBatch(multi_sink_writer)
         .option("checkpointLocation", cfg.checkpoints['silver'])
@@ -136,8 +135,7 @@ def start_silver_stream(spark,config):
     return query
 
 
-
 if __name__ == "__main__":
-    spark = get_spark("bronze_to_silver")
-    query = start_silver_stream(spark,cfg)
+    spark = get_spark_session()
+    query = start_silver_stream(spark, cfg)
     query.awaitTermination()

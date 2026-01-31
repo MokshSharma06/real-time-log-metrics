@@ -18,16 +18,11 @@ gold_path =cfg.paths['gold']
 
 
 
-silver_clean_df = spark.readStream \
-    .format("delta") \
-    .load(clean_path)
-
-
 def compute_service_error_metrics(
-    silver_clean_df: DataFrame,
-    window_duration: str = "5 minutes",
-    watermark_duration: str = "10 minutes"
-) -> DataFrame:
+    silver_clean_df,
+    window_duration=cfg.streaming['window']['duration'],
+    watermark_duration=cfg.streaming['watermark_duration']
+):
 
     # Flag error records
     base_df = silver_clean_df.withColumn(
@@ -65,6 +60,8 @@ def start_gold_stream(spark):
     silver_clean_df = (
         spark.readStream
         .format("delta")
+        .option("ignoreChanges","true")
+        .option("skipChangeCommits", "true")
         .load(clean_path)
     )
 
@@ -73,6 +70,7 @@ def start_gold_stream(spark):
     query = (
         gold_df.writeStream
         .format("delta")
+        # .trigger(availableNow=True)
         .queryName("Gold_Stream")
         .outputMode("append")
         .option("checkpointLocation", cfg.checkpoints['gold'])
@@ -81,7 +79,8 @@ def start_gold_stream(spark):
 
     return query
 
+
 if __name__ == "__main__":
-    spark = get_spark("Gold_stream")
+    spark = get_spark_session()
     query = start_gold_stream(spark)
     query.awaitTermination()

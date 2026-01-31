@@ -1,6 +1,6 @@
 from pyspark.sql.functions import col, current_timestamp, to_date, hour
 from databricks.sdk.runtime import dbutils
-from src.utils import cfg
+from src.utils import cfg,get_spark_session
 
 def start_bronze_stream(spark):
     eh_conn_string = dbutils.secrets.get(
@@ -42,7 +42,8 @@ def start_bronze_stream(spark):
     # -------------------- WRITE BRONZE DELTA --------------------
     query = (
         bronze_df.writeStream
-        .trigger(processingTime=cfg.streaming['trigger_interval'])
+        # .trigger(availableNow=True)
+        # .option("maxEventsPerTrigger", 60)
         .format("delta")
         .queryName("Ingestion_EventHub_to_Bronze")
         .outputMode("append")
@@ -66,6 +67,6 @@ def start_bronze_stream(spark):
 
 
 if __name__ == "__main__":
-    spark = get_spark("Kafka_to_Bronze")
+    spark = get_spark_session()
     query = start_bronze_stream(spark)
     query.awaitTermination()

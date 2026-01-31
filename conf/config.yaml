@@ -67,7 +67,7 @@ streaming:
   trigger_interval: "1 minutes"
 
   event_time_column: event_time
-  watermark_duration: "1 hours"
+  watermark_duration: "2 minutes"
 
   window:
     type: tumbling            # tumbling | sliding

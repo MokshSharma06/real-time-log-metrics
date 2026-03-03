@@ -97,6 +97,9 @@ YAML configs – for flexible pipeline settings (env agnostic)
 Unit Testing (pytest) – test-driven modules
 
 # ScreenShots
+## Producer emitting logs
+![image](docs/producer.png)
+
 ## Data / Raw 
 ![image](docs/bronze_data.png)
 
